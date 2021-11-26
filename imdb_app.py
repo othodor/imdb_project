@@ -1,6 +1,6 @@
-from enum import auto
 import streamlit as st
 import pandas as pd
+import numpy as np
 from PIL import Image
 import re
 
@@ -29,7 +29,8 @@ movie_data["original_title"]= movie_data["original_title"].fillna("-")
 movie_data["original_title"]= movie_data["original_title"].str.replace("Original title:", "")
 movie_data["public"]= movie_data["public"].fillna("-")
 movie_data_clean = movie_data.copy()
-movie_data_clean["movie_runtime"]= movie_data_clean["movie_runtime"].str.replace("minutes","").str.replace("hour","h").str.replace("hs","h")
+movie_data_clean["movie_runtime"]= movie_data_clean["movie_runtime"].str.replace("minutes","").str.replace("hour","h").str.replace("hs","h").str.replace("minute", "")
+movie_data_clean["movie_note"]= movie_data_clean["movie_note"].round(decimals=1)
 movie_data_clean = movie_data_clean.rename(columns={
     "title": "Movie Title",
     "original_title": "Original Title",
@@ -86,7 +87,7 @@ user_filter = st.sidebar.radio('Filter by: ', ('None','Movie', 'Actor', 'Genre',
 
 #Session state
 if 'rows_nbr' not in st.session_state:
-    st.session_state['rows_nbr'] = 250
+    st.session_state['rows_nbr'] = 10
 
 #Containers
 header = st.container()
@@ -105,10 +106,10 @@ none_filter = st.container()
 with none_filter:
     if user_filter == 'None':
         '# 📽️ IMDb Top 250 Movies of all time'
-        st.image(logo_png, width=400)
+        st.image(logo_png, width=300)
         
-        show_more = st.button('Show more movies')
-        show_less = st.button('Show less movies')
+        show_more = st.button('Show 10 more movies')
+        show_less = st.button('Show less')
         
         if show_more:
             st.session_state.rows_nbr += 10
