@@ -4,7 +4,7 @@ This project was build using scrapping methods (Scrapy) to get data from IMDb we
 We used pandas to get dataframes and manage the data collected. \
 The final app was build with Streamlit. \
 The app is deployed on Heroku. \
-You can try it here.l() 
+You can try it [here](https://imdb-top-250-movies.herokuapp.com/) 
 
 ## App features:
 * Filter by Movie Title (Select Box)
