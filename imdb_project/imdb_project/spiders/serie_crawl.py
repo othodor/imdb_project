@@ -19,10 +19,6 @@ class SerieCrawlSpider(CrawlSpider):
         item['serie note'] = response.xpath('//span[@class="AggregateRatingButton__RatingScore-sc-1ll29m0-1 iTLWoV"]/text()').get()
         item['genre'] = response.xpath('//li[@data-testid="storyline-genres"]/div/ul/li/a/text()').getall()
         item['Seasons'] = response.xpath('//select[@id="browse-episodes-season"]/option/text()').get()
-        if item['Seasons'] == "":
-            item['Seasons'] = 1
-        else:
-            pass
         item['Episodes'] = response.xpath('//h3[@class="ipc-title__text"]/span[@class="ipc-title__subtext"]/text()').get()
         item['date_pub'] = response.xpath('//ul[@data-testid="hero-title-block__metadata"]/li[2]/a/text()').get()
         item['movie_runtime'] = response.xpath('//li[@data-testid="title-techspec_runtime"]/div/text()').getall()

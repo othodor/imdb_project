@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 import re
 
 #Set page
@@ -7,7 +8,7 @@ st.set_page_config(
     page_title="IMDb Top 250 Movies App",
     page_icon="🍿",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="auto",
     menu_items={
        'About': "# IMDb Top 250 Movies App. It helps you to make a choice!"
     }
@@ -21,6 +22,7 @@ actor = st.container()
 genre = st.container()
 duration = st.container()
 note = st.container()
+none_filter = st.container()
 
 #Cleaning operations 
 movie_data = pd.read_csv('imdb_project/movie_crawl.csv')
@@ -64,56 +66,90 @@ clone_data["Duration"] = movie_duration
 movie_list = movie_data["title"]
 actors_list = pd.unique(movie_data["actors"].str.split(",").explode("actors").sort_values())
 movie_genre = pd.unique(movie_data["genre"].str.split(",").explode("genre"))
+lang_list = pd.unique(movie_data["orginal_language"].str.split(",").explode("orginal_language").sort_values())
+country_list = pd.unique(movie_data["country_of_origin"].str.split(",").explode("country_of_origin").sort_values())
+# date_list = pd.unique(movie_data["date_pub"].explode("date_pub").sort_values())
+plot_types = ['Original Language', 'Country of Origin']
+logo_png = Image.open('IMDb.png')
+
+
+#Functions
+
+# def handle_click_wo_button():
+#     if st.session_state.kind_of_column:
+#         st.session_state.type = st.session_state.kind_of_column
+
+# def handle_click(new_type):
+#     st.session_state.type = new_type
+
 
 #Sidebar
 home = st.sidebar.button("Home")
-user_filter = st.sidebar.radio('Filter by: ', ('None','Movie', 'Actor', 'Genre', 'Runtime', 'Movie Rating'))
+filter_button = st.sidebar.button('Filters')
 
 
+#Session state
+if 'rows_nbr' not in st.session_state:
+    st.session_state['rows_nbr'] = 10
+
+#App
 with header:
-    if home:
-        '# IMDb TOP 250 Movies of all time'
-        st.dataframe(movie_data_clean)
+        if home:
+            st.image(logo_png)
+            '# 📽️ IMDb TOP 250 Movies of all time'
+            st.write(movie_data_clean.sort_values(by=["Movie Rating"], ascending=False).head(10))
+          
+if filter_button:
+    user_filter = st.sidebar.radio('Filter by: ', ('None','Movie', 'Actor', 'Genre', 'Runtime', 'Movie Rating'))
+    with none_filter:
+        if user_filter == 'None':
+            '# 📽️ IMDb TOP 250 Movies of all time'
+            show_more = st.button('Show more movies')
+            show_less = st.button('Show less movies')
+            if show_more:
+                st.session_state.rows_nbr += 1
+                        
+            
+            if show_less:
+                st.session_state.rows_nbr -= 1
+                    
+            st.table(movie_data_clean.sort_values(by=["Movie Rating"], ascending=False).head(st.session_state['rows_nbr']))           
 
-if user_filter == 'None':
-    '# IMDb TOP 250 Movies of all time'
-    st.dataframe(movie_data_clean)
+    with movie_title:
+        # user_text_input = st.text_input('What movie are you looking for?', value="The Big Lebowski", type="default", autocomplete= "on")
+        # user_movie_select = st.selectbox('What movie are you looking for?', options= movie_list, index=120)
+        if user_filter == 'Movie':
+            '### Filter by Movie'
+            user_movie_select = st.sidebar.selectbox('What movie are you looking for?', options= movie_list, index=120)
+            df_movie_title = st.write(movie_data_clean[movie_data_clean["Movie Title"].str.contains(user_movie_select)], height= 300, width= 500)
+            
+    with actor:
+        # user_actor_select = st.selectbox('Select an Actor: ', options= actors_list, index=120)
+        if user_filter == 'Actor':
+            '### Filter by Actor'
+            user_actor_select = st.sidebar.selectbox('Select an Actor: ', options= actors_list, index=120)
+            df_actors = st.write(movie_data_clean[movie_data_clean["Main Cast"].str.contains(user_actor_select)], height= 300, width= 500)
 
-with movie_title:
-    # user_text_input = st.text_input('What movie are you looking for?', value="The Big Lebowski", type="default", autocomplete= "on")
-    # user_movie_select = st.selectbox('What movie are you looking for?', options= movie_list, index=120)
-    if user_filter == 'Movie':
-        '### Filter by Movie'
-        user_movie_select = st.sidebar.selectbox('What movie are you looking for?', options= movie_list, index=120)
-        df_movie_title = st.write(movie_data_clean[movie_data_clean["Movie Title"].str.contains(user_movie_select)], height= 300, width= 500)
-        
-with actor:
-    # user_actor_select = st.selectbox('Select an Actor: ', options= actors_list, index=120)
-    if user_filter == 'Actor':
-        '### Filter by Actor'
-        user_actor_select = st.sidebar.selectbox('Select an Actor: ', options= actors_list, index=120)
-        df_actors = st.write(movie_data_clean[movie_data_clean["Main Cast"].str.contains(user_actor_select)], height= 300, width= 500)
+    with genre:
+        # user_genre_select = st.selectbox('Select a Genre: ', options= movie_genre, index=4)
+        if user_filter == 'Genre':
+            '### Filter by Genre'
+            user_genre_select = st.sidebar.selectbox('Select a Genre: ', options= movie_genre, index=4)
+            df_movie_genre = st.write(movie_data_clean[movie_data_clean["Genre"].str.contains(user_genre_select)])
 
-with genre:
-    # user_genre_select = st.selectbox('Select a Genre: ', options= movie_genre, index=4)
-    if user_filter == 'Genre':
-        '### Filter by Genre'
-        user_genre_select = st.sidebar.selectbox('Select a Genre: ', options= movie_genre, index=4)
-        df_movie_genre = st.write(movie_data_clean[movie_data_clean["Genre"].str.contains(user_genre_select)])
+    with duration:
+        # user_duration_select = st.slider('Movie Runtime: ', min_value=40.0, max_value=350.0, value=121.0, step=1.0)
+        if user_filter == 'Runtime':
+            '### Filter by Runtime'
+            user_duration_select = st.sidebar.slider('Movie Runtime: ', min_value=40.0, max_value=350.0, value=121.0, step=1.0)
+            df_movie_duration = st.write(clone_data[clone_data["Duration"] == user_duration_select])
 
-with duration:
-    # user_duration_select = st.slider('Movie Runtime: ', min_value=40.0, max_value=350.0, value=121.0, step=1.0)
-    if user_filter == 'Runtime':
-        '### Filter by Runtime'
-        user_duration_select = st.sidebar.slider('Movie Runtime: ', min_value=40.0, max_value=350.0, value=121.0, step=1.0)
-        df_movie_duration = st.write(clone_data[clone_data["Duration"] == user_duration_select])
-
-with note:
-    # user_note_select = st.slider('Movie Rating: ', min_value=8.0, max_value=10.0, value=8.3, step=0.1)
-    if user_filter == 'Movie Rating':
-        '### Filter by Movie Rating'
-        user_note_select = st.sidebar.slider('Movie Rating: ', min_value=8.0, max_value=10.0, value=8.3, step=0.1)
-        df_movie_note = st.write(movie_data_clean[movie_data_clean["Movie Rating"] == user_note_select])
+    with note:
+        # user_note_select = st.slider('Movie Rating: ', min_value=8.0, max_value=10.0, value=8.3, step=0.1)
+        if user_filter == 'Movie Rating':
+            '### Filter by Movie Rating'
+            user_note_select = st.sidebar.slider('Movie Rating: ', min_value=8.0, max_value=10.0, value=8.3, step=0.1)
+            df_movie_note = st.write(movie_data_clean[movie_data_clean["Movie Rating"] == user_note_select])
 
 
 
